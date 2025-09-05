@@ -85,7 +85,7 @@ const themes = {
 }
 
 export function useTheme() {
-  const currentTheme = ref(localStorage.getItem(THEME_KEY) || 'light')
+  const currentTheme = ref(localStorage.getItem(THEME_KEY) || 'dark')
   const favoriteThemes = ref(JSON.parse(localStorage.getItem('favorite-themes') || '[]'))
 
   const applyTheme = (themeName) => {
@@ -112,8 +112,7 @@ export function useTheme() {
   }
 
   const detectSystemTheme = () => {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    return isDark ? 'dark' : 'light'
+    return 'dark'
   }
 
   onMounted(() => {

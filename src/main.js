@@ -9,6 +9,6 @@ const app = createApp(App)
 
 // Initialize theme system
 const { applyTheme } = useTheme()
-applyTheme(localStorage.getItem('datemaster-theme') || 'light')
+applyTheme(localStorage.getItem('datemaster-theme') || 'dark')
 
 app.mount('#app')
