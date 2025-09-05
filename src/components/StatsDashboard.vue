@@ -61,6 +61,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js'
 import { Doughnut, Line } from 'vue-chartjs'
 import { format, addMonths, isSameMonth, isBefore, differenceInDays } from 'date-fns'
+import { useTheme } from '../composables/useTheme'
 
 // Register ChartJS components
 ChartJS.register(
@@ -99,18 +100,25 @@ const categoryData = computed(() => {
     categories[entry.category] = (categories[entry.category] || 0) + 1
   })
 
+  // Brighter colors that work well in both light and dark modes
+  const colors = {
+    birthday: '#FF6B8A',    // Brighter pink
+    anniversary: '#5CBBFF', // Brighter blue
+    work: '#4EFFE1',        // Brighter teal
+    personal: '#B57FFF',    // Brighter purple
+    holiday: '#FFD75C',     // Brighter yellow
+    other: '#A8B3BC'        // Neutral gray
+  }
+
+  const categoryColors = Object.keys(categories).map(category => colors[category] || colors.other)
+
   return {
     labels: Object.keys(categories),
     datasets: [{
       data: Object.values(categories),
-      backgroundColor: [
-        '#FF69B4', // birthday
-        '#4169E1', // anniversary
-        '#32CD32', // work
-        '#9370DB', // personal
-        '#FFD700', // holiday
-        '#A9A9A9'  // other
-      ]
+      backgroundColor: categoryColors.map(color => `${color}CC`), // 80% opacity
+      borderColor: categoryColors,
+      borderWidth: 2
     }]
   }
 })
@@ -118,6 +126,7 @@ const categoryData = computed(() => {
 const timelineData = computed(() => {
   const months = {}
   const today = new Date()
+  const isDark = currentTheme.value === 'dark' || currentTheme.value === 'ocean' || currentTheme.value === 'forest'
   
   // Initialize last 12 months
   for (let i = 11; i >= 0; i--) {
@@ -139,8 +148,16 @@ const timelineData = computed(() => {
     datasets: [{
       label: 'Number of Events',
       data: Object.values(months),
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
+      borderColor: '#3498db',
+      backgroundColor: 'rgba(52, 152, 219, 0.1)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#3498db',
+      pointBorderColor: isDark ? '#1E1E1E' : '#FFFFFF',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6
     }]
   }
 })
@@ -183,11 +200,77 @@ const mostActiveMonth = computed(() => {
     .sort(([,a], [,b]) => b - a)[0][0]
 })
 
-// Chart Options
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false
-}
+const { currentTheme } = useTheme()
+
+// Computed chart options based on theme
+const chartOptions = computed(() => {
+  const isDark = currentTheme.value === 'dark' || currentTheme.value === 'ocean' || currentTheme.value === 'forest'
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+          padding: 15,
+          color: isDark ? '#FFFFFF' : '#000000',
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
+        titleColor: isDark ? '#FFFFFF' : '#000000',
+        bodyColor: isDark ? '#FFFFFF' : '#000000',
+        borderColor: isDark ? '#333333' : '#E0E0E0',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: true
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        border: {
+          color: isDark ? '#666666' : '#999999'
+        },
+        grid: {
+          color: isDark ? '#333333' : '#E0E0E0',
+          drawBorder: true,
+          lineWidth: 0.5
+        },
+        ticks: {
+          color: isDark ? '#FFFFFF' : '#000000',
+          font: {
+            size: 11
+          },
+          padding: 8
+        }
+      },
+      x: {
+        border: {
+          color: isDark ? '#666666' : '#999999'
+        },
+        grid: {
+          color: isDark ? '#333333' : '#E0E0E0',
+          drawBorder: true,
+          lineWidth: 0.5
+        },
+        ticks: {
+          color: isDark ? '#FFFFFF' : '#000000',
+          font: {
+            size: 11
+          },
+          padding: 8
+        }
+      }
+    }
+  }
+})
 
 // Helper Functions
 const formatDate = (date) => {
@@ -230,7 +313,17 @@ const getCountdown = (date) => {
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  height: 300px;
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container canvas {
+  max-width: 100%;
+  height: auto !important;
+  aspect-ratio: 16/9;
 }
 
 h4 {

@@ -6,14 +6,18 @@
         v-for="theme in themes"
         :key="theme"
         class="theme-option"
-        :class="[theme, { active: currentTheme === theme }]"
+        :class="{ active: currentTheme === theme }"
+        :data-theme="theme"
         @click="applyTheme(theme)"
       >
         <div class="theme-preview">
-          <div class="preview-header"></div>
+          <div class="preview-header">
+            <div class="accent-dot"></div>
+          </div>
           <div class="preview-content">
             <div class="preview-line"></div>
             <div class="preview-line"></div>
+            <div class="preview-accent"></div>
           </div>
         </div>
         <div class="theme-info">
@@ -90,20 +94,186 @@ h3 {
   overflow: hidden;
 }
 
-.preview-header {
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
+/* Theme previews with static colors */
+[data-theme="dark"] .theme-preview {
+  background: #121212;
+}
+[data-theme="dark"] .preview-header {
+  background: #1E1E1E;
+}
+[data-theme="dark"] .preview-line {
+  height: 8px;
+  background: #2A2A2A;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #333333;
+}
+
+[data-theme="light"] .theme-preview {
+  background: #FFFFFF;
+}
+[data-theme="light"] .preview-header {
+  background: #F5F5F5;
+}
+[data-theme="light"] .preview-line {
+  height: 8px;
+  background: #F0F0F0;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #E0E0E0;
+}
+
+[data-theme="ocean"] .theme-preview {
+  background: #1a3b5c;
+}
+[data-theme="ocean"] .preview-header {
+  background: #234b76;
+}
+[data-theme="ocean"] .preview-line {
+  height: 8px;
+  background: #2A557C;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #2D5F8E;
+}
+
+[data-theme="forest"] .theme-preview {
+  background: #1b4332;
+}
+[data-theme="forest"] .preview-header {
+  background: #2d6a4f;
+}
+[data-theme="forest"] .preview-line {
+  height: 8px;
+  background: #2D6A4F;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #40916C;
+}
+
+[data-theme="sunset"] .theme-preview {
+  background: #7D4E57;
+}
+[data-theme="sunset"] .preview-header {
+  background: #96575D;
+}
+[data-theme="sunset"] .preview-line {
+  height: 8px;
+  background: #A65D63;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #B25D63;
+}
+
+/* Purple theme preview */
+[data-theme="purple"] .theme-preview {
+  background: #44318D;
+}
+[data-theme="purple"] .preview-header {
+  background: #4A359D;
+}
+[data-theme="purple"] .preview-line {
+  height: 8px;
+  background: #5641B0;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #5A43AD;
+}
+
+/* Minimal theme preview */
+[data-theme="minimal"] .theme-preview {
+  background: #FAFAFA;
+}
+[data-theme="minimal"] .preview-header {
+  background: #F0F0F0;
+}
+[data-theme="minimal"] .preview-line {
+  height: 8px;
+  background: #F5F5F5;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #E0E0E0;
+}
+
+/* Neon theme preview */
+[data-theme="neon"] .theme-preview {
+  background: #0C0C14;
+}
+[data-theme="neon"] .preview-header {
+  background: #1A1A24;
+}
+[data-theme="neon"] .preview-line {
+  height: 8px;
+  background: #14141E;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #333342;
 }
 
 .preview-content {
   padding: 8px;
 }
 
-.preview-line {
+.preview-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.accent-dot {
+  width: 8px;
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  margin-bottom: 8px;
-  border-radius: 4px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+
+.preview-accent {
+  height: 4px;
+  width: 40%;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+/* Theme-specific accent colors */
+[data-theme="dark"] .accent-dot,
+[data-theme="dark"] .preview-accent {
+  background: #3498db;
+}
+
+[data-theme="light"] .accent-dot,
+[data-theme="light"] .preview-accent {
+  background: #2980b9;
+}
+
+[data-theme="ocean"] .accent-dot,
+[data-theme="ocean"] .preview-accent {
+  background: #4FB4FF;
+}
+
+[data-theme="forest"] .accent-dot,
+[data-theme="forest"] .preview-accent {
+  background: #74C69D;
+}
+
+[data-theme="sunset"] .accent-dot,
+[data-theme="sunset"] .preview-accent {
+  background: #FF9E9E;
+}
+
+[data-theme="purple"] .accent-dot,
+[data-theme="purple"] .preview-accent {
+  background: #A388EE;
+}
+
+[data-theme="minimal"] .accent-dot,
+[data-theme="minimal"] .preview-accent {
+  background: #808080;
+}
+
+[data-theme="neon"] .accent-dot,
+[data-theme="neon"] .preview-accent {
+  background: #FF00FF;
 }
 
 .theme-info {
@@ -117,6 +287,21 @@ h3 {
 .theme-name {
   color: var(--text-primary);
   font-size: 0.9rem;
+  font-weight: 500;
+}
+
+[data-theme="light"] .theme-name,
+[data-theme="minimal"] .theme-name {
+  color: #000000;
+}
+
+[data-theme="dark"] .theme-name,
+[data-theme="ocean"] .theme-name,
+[data-theme="forest"] .theme-name,
+[data-theme="sunset"] .theme-name,
+[data-theme="purple"] .theme-name,
+[data-theme="neon"] .theme-name {
+  color: #FFFFFF;
 }
 
 .favorite-btn {

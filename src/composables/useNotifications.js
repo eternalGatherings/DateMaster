@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 export function useNotifications() {
   const permission = ref('default')
   const notifications = ref([])
+  const toasts = ref([])
   const notificationSettings = ref({
     enabled: true,
     daysBeforeEvent: 7,
@@ -40,6 +41,29 @@ export function useNotifications() {
     } catch (error) {
       console.error('Error requesting notification permission:', error)
       return false
+    }
+  }
+
+  const showToast = (message, type = 'success') => {
+    const id = Date.now()
+    const toast = {
+      id,
+      message,
+      type,
+      timestamp: new Date()
+    }
+    toasts.value.push(toast)
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      removeToast(id)
+    }, 3000)
+  }
+
+  const removeToast = (id) => {
+    const index = toasts.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      toasts.value.splice(index, 1)
     }
   }
 

@@ -1,0 +1,53 @@
+/* Toast Styles */
+:root {
+  /* Base Toast */
+  --toast-opacity: 0.95;
+  --toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* Success Toast */
+  --toast-success-bg: var(--bg-secondary);
+  --toast-success-border: #4ade80;
+  --toast-success-text: var(--text-primary);
+
+  /* Error Toast */
+  --toast-error-bg: var(--bg-secondary);
+  --toast-error-border: #f43f5e;
+  --toast-error-text: var(--text-primary);
+
+  /* Info Toast */
+  --toast-info-bg: var(--bg-secondary);
+  --toast-info-border: var(--accent-color);
+  --toast-info-text: var(--text-primary);
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* Transitions */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-list-move, 
+.toast-list-enter-active,
+.toast-list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-list-leave-active {
+  position: absolute;
+}
+
+.toast-list-enter-from,
+.toast-list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}

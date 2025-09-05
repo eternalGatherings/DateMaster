@@ -26,7 +26,14 @@
           </nav>
 
           <div class="menu-section">
-            <component :is="currentSection.component" v-if="currentSection" />
+            <component 
+              :is="currentSection.component" 
+              v-if="currentSection" 
+              @add-preset="(preset) => {
+                console.log('MenuPanel received add-preset:', preset)
+                $emit('add-preset', preset)
+              }"
+            />
           </div>
         </div>
       </aside>
@@ -50,7 +57,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['close'])
+defineEmits(['close', 'add-preset'])
 
 const sections = [
   { title: 'Quick Actions', component: QuickActions },

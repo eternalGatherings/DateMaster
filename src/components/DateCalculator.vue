@@ -8,7 +8,6 @@
           class="form-control"
           v-model="searchQuery"
           placeholder="Search dates..."
-          @input="filterEntries"
         >
       </div>
       <button class="btn btn-primary add-entry-btn" @click="showAddModal = true">
@@ -146,16 +145,13 @@
                 v-model="formData.theme"
                 class="form-control"
               >
-                <option value="blue">Blue</option>
-                <option value="green">Green</option>
-                <option value="purple">Purple</option>
-                <option value="orange">Orange</option>
-                <option value="red">Red</option>
-                <option value="pink">Pink</option>
-                <option value="teal">Teal</option>
-                <option value="yellow">Yellow</option>
-                <option value="gray">Gray</option>
-                <option value="white">White</option>
+                <option 
+                  v-for="(theme, key) in entryThemes" 
+                  :key="key"
+                  :value="key"
+                >
+                  {{ theme.name }}
+                </option>
               </select>
             </div>
 
@@ -175,12 +171,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { format, formatDistanceStrict, intervalToDuration } from 'date-fns'
+import { useDates } from '../store/dates'
+import { entryThemes, getRandomTheme } from '../composables/useEntryThemes'
 
-// State
-const entries = ref([])
-const searchQuery = ref('')
+// Get store methods
+const { entries, filteredEntries, searchQuery, addEntry, updateEntry, deleteEntry: deleteStoreEntry } = useDates()
+
+// Component state
 const showAddModal = ref(false)
 const editingEntry = ref(null)
 const formData = ref({
@@ -189,42 +188,7 @@ const formData = ref({
   displayDate: '',
   type: 'exact',
   category: 'personal',
-  theme: 'blue'
-})
-
-// Load entries from localStorage
-const loadEntries = () => {
-  const savedEntries = localStorage.getItem('date-entries')
-  if (savedEntries) {
-    entries.value = JSON.parse(savedEntries)
-  }
-}
-
-// Save entries to localStorage
-const saveEntries = () => {
-  localStorage.setItem('date-entries', JSON.stringify(entries.value))
-}
-
-// Initialize data
-loadEntries()
-
-// Computed
-const filteredEntries = computed(() => {
-  let result = entries.value
-  
-  // Apply search filter if query exists
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(entry => 
-      entry.name.toLowerCase().includes(query) ||
-      entry.category.toLowerCase().includes(query)
-    )
-  }
-  
-  // Sort by creation date in descending order (newest first)
-  return result.sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  theme: getRandomTheme()
 })
 
 // Methods
@@ -331,7 +295,7 @@ const resetForm = () => {
     displayDate: '',
     type: 'exact',
     category: 'personal',
-    theme: 'blue'
+    theme: getRandomTheme()
   }
   editingEntry.value = null
 }
@@ -347,8 +311,7 @@ const editEntry = (entry) => {
 
 const deleteEntry = (entry) => {
   if (confirm('Are you sure you want to delete this entry?')) {
-    entries.value = entries.value.filter(e => e.id !== entry.id)
-    saveEntries()
+    deleteStoreEntry(entry.id)
   }
 }
 
@@ -361,21 +324,20 @@ const saveEntry = () => {
 
   if (editingEntry.value) {
     // Update existing entry
-    const index = entries.value.findIndex(e => e.id === editingEntry.value.id)
-    entries.value[index] = {
+    const updatedEntry = {
       ...editingEntry.value,
       ...data
     }
+    updateEntry(updatedEntry)
   } else {
     // Add new entry
-    entries.value.push({
+    addEntry({
       ...data,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString()
     })
   }
 
-  saveEntries()
   closeModal()
 }
 
@@ -591,15 +553,68 @@ const closeModal = () => {
   margin-top: 1rem;
 }
 
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 0 1px rgba(0, 0, 0, 0.15);
+  position: relative;
+  padding: 1.5rem;
+}
+
+.modal-content h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* Modal Transitions */
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.3s ease-out;
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
+}
+
+.modal-enter-to .modal-content,
+.modal-leave-from .modal-content {
+  transform: scale(1) translateY(0);
 }
 
 /* Mobile Styles */

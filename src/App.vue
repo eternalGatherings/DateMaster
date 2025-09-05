@@ -3,9 +3,10 @@
     <header class="app-header">
       <h1 class="app-title">DateMaster</h1>
       <div class="header-actions">
-        <button class="btn btn-secondary menu-toggle" @click="toggleMenu">
-          <span class="menu-icon"></span>
-          <span class="visually-hidden">Toggle Menu</span>
+        <button class="btn btn-secondary menu-toggle" @click="toggleMenu" aria-label="Toggle Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+          </svg>
         </button>
       </div>
     </header>
@@ -14,8 +15,12 @@
       <DateCalculator />
     </main>
 
-    <MenuPanel :isOpen="isMenuOpen" @close="closeMenu" />
+    <MenuPanel 
+      :isOpen="isMenuOpen" 
+      @close="closeMenu"
+    />
     <ThemeToggle />
+    <ToastNotification />
   </div>
 </template>
 
@@ -24,6 +29,7 @@ import { ref } from 'vue'
 import DateCalculator from './components/DateCalculator.vue'
 import MenuPanel from './components/MenuPanel.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
+import ToastNotification from './components/ToastNotification.vue'
 
 const isMenuOpen = ref(false)
 
@@ -71,35 +77,16 @@ const closeMenu = () => {
 .menu-toggle {
   width: 44px;
   height: 44px;
-  padding: 0;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
 }
 
-.menu-icon {
-  position: relative;
-  width: 20px;
-  height: 2px;
-  background: var(--text-primary);
-}
-
-.menu-icon::before,
-.menu-icon::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: var(--text-primary);
-  transition: transform 0.2s ease;
-}
-
-.menu-icon::before {
-  transform: translateY(-6px);
-}
-
-.menu-icon::after {
-  transform: translateY(6px);
+.menu-toggle:hover {
+  color: var(--accent-color);
 }
 
 .app-main {
