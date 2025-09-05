@@ -93,16 +93,13 @@
             </div>
 
             <div class="form-group">
-              <label for="date">Date (dd/mm/yyyy)</label>
+              <label for="date">Date</label>
               <input
                 id="date"
-                v-model="formData.displayDate"
-                type="text"
+                v-model="formData.date"
+                type="date"
                 class="form-control"
-                placeholder="dd/mm/yyyy"
-                pattern="\d{2}/\d{2}/\d{4}"
                 required
-                @input="handleDateInput"
               >
             </div>
 
@@ -246,53 +243,17 @@ const filterEntries = () => {
 }
 
 // Convert date string to dd/mm/yyyy format
+// Format date for display in the UI
 const formatDisplayDate = (dateStr) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  return format(date, 'dd/MM/yyyy')
-}
-
-// Convert dd/mm/yyyy to ISO format
-const parseDisplayDate = (displayDate) => {
-  if (!displayDate) return ''
-  const [day, month, year] = displayDate.split('/')
-  const date = new Date(year, month - 1, day)
-  return date.toISOString().split('T')[0]
-}
-
-const handleDateInput = (event) => {
-  const input = event.target.value
-  
-  // Allow backspace and incomplete dates
-  if (input.length < formData.value.displayDate.length) {
-    formData.value.displayDate = input
-    return
-  }
-
-  // Format as user types
-  let cleaned = input.replace(/\D/g, '')
-  if (cleaned.length > 8) cleaned = cleaned.slice(0, 8)
-  
-  if (cleaned.length >= 2) {
-    cleaned = cleaned.slice(0, 2) + '/' + cleaned.slice(2)
-  }
-  if (cleaned.length >= 5) {
-    cleaned = cleaned.slice(0, 5) + '/' + cleaned.slice(5)
-  }
-  
-  formData.value.displayDate = cleaned
-  
-  // Update ISO date when input is complete
-  if (cleaned.length === 10) {
-    formData.value.date = parseDisplayDate(cleaned)
-  }
+  return format(date, 'MMMM d, yyyy')
 }
 
 const resetForm = () => {
   formData.value = {
     name: '',
-    date: '',
-    displayDate: '',
+    date: new Date().toISOString().split('T')[0],
     type: 'exact',
     category: 'personal',
     theme: getRandomTheme()
@@ -303,8 +264,7 @@ const resetForm = () => {
 const editEntry = (entry) => {
   editingEntry.value = entry
   formData.value = {
-    ...entry,
-    displayDate: formatDisplayDate(entry.date)
+    ...entry
   }
   showAddModal.value = true
 }
@@ -316,9 +276,8 @@ const deleteEntry = (entry) => {
 }
 
 const saveEntry = () => {
-  const { displayDate, ...dataWithoutDisplay } = formData.value
   const data = {
-    ...dataWithoutDisplay,
+    ...formData.value,
     updatedAt: new Date().toISOString()
   }
 
