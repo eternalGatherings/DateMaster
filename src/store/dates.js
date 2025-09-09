@@ -29,10 +29,11 @@ const filteredEntries = computed(() => {
     )
   }
   
-  // Sort by creation date in descending order (newest first)
-  return [...result].sort((a, b) => 
-    new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-  )
+  // Sort by manual order
+  return [...result].sort((a, b) => {
+    // Use order property for sorting
+    return (a.order || 0) - (b.order || 0)
+  })
 })
 
 // Save entries to localStorage
@@ -53,7 +54,8 @@ const addEntry = (entry) => {
     id: Date.now(),
     createdAt: now.toISOString(),
     ...entry,
-    theme: entry.theme || 'blue'
+    theme: entry.theme || 'blue',
+    order: entries.value.length  // Add to end of list
   }
   try {
     entries.value = [...entries.value, newEntry]
@@ -110,6 +112,49 @@ const setSearchQuery = (query) => {
   searchQuery.value = query
 }
 
+const setPriority = (entryId, priority) => {
+  try {
+    const entry = entries.value.find(e => e.id === entryId)
+    if (!entry) throw new Error('Entry not found')
+    
+    entry.priority = priority
+    entries.value = [...entries.value]
+    
+    if (saveEntries()) {
+      showToast(`Successfully updated priority for "${entry.name}"`)
+    } else {
+      throw new Error('Failed to save entries')
+    }
+  } catch (error) {
+    showToast('Failed to update priority', 'error')
+    throw error
+  }
+}
+
+const reorderEntries = (fromIndex, toIndex) => {
+  try {
+    const items = [...entries.value]
+    const [movedItem] = items.splice(fromIndex, 1)
+    items.splice(toIndex, 0, movedItem)
+    
+    // Update order property for all items
+    items.forEach((item, index) => {
+      item.order = index
+    })
+    
+    entries.value = items
+    
+    if (saveEntries()) {
+      showToast('Successfully reordered entries')
+    } else {
+      throw new Error('Failed to save entries')
+    }
+  } catch (error) {
+    showToast('Failed to reorder entries', 'error')
+    throw error
+  }
+}
+
 export const useDates = () => {
   return {
     entries,
@@ -117,6 +162,8 @@ export const useDates = () => {
     searchQuery,
     addEntry,
     updateEntry,
+    reorderEntries,
+    setPriority,
     deleteEntry,
     setSearchQuery
   }

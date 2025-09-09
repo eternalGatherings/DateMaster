@@ -12,7 +12,7 @@
       </div>
       <button class="btn btn-primary add-entry-btn" @click="showAddModal = true">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+          <path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/>
         </svg>
         Add Date
       </button>
@@ -21,10 +21,16 @@
     <!-- Date entries grid -->
     <div v-if="filteredEntries.length" class="entries-grid">
       <div
-        v-for="entry in filteredEntries"
+        v-for="(entry, index) in filteredEntries"
         :key="entry.id"
         class="date-entry card"
-        :class="[entry.category, `theme-${entry.theme || 'blue'}`]"
+        :class="[entry.category, `theme-${entry.theme || 'blue'}`, { 'is-dragging': draggingId === entry.id }]"
+        draggable="true"
+        @dragstart="startDrag($event, entry, index)"
+        @dragend="endDrag"
+        @dragover.prevent
+        @dragenter.prevent
+        @drop="onDrop($event, index)"
       >
         <div class="entry-header">
           <h3>{{ entry.name }}</h3>
@@ -73,6 +79,9 @@
       <p>{{ searchQuery ? 'Try a different search term' : 'Add your first date to get started' }}</p>
       <button class="btn btn-primary" @click="showAddModal = true">Add Date</button>
     </div>
+
+    <!-- Example carousel when no entries -->
+    <ExampleCarousel v-if="!entries.length && !searchQuery" />
 
     <!-- Add/Edit Modal -->
     <Transition name="modal">
@@ -171,10 +180,35 @@
 import { ref } from 'vue'
 import { format, formatDistanceStrict, intervalToDuration } from 'date-fns'
 import { useDates } from '../store/dates'
+import ExampleCarousel from './ExampleCarousel.vue'
 import { entryThemes, getRandomTheme } from '../composables/useEntryThemes'
 
 // Get store methods
-const { entries, filteredEntries, searchQuery, addEntry, updateEntry, deleteEntry: deleteStoreEntry } = useDates()
+const { entries, filteredEntries, searchQuery, addEntry, updateEntry, deleteEntry: deleteStoreEntry, reorderEntries } = useDates()
+
+// Drag and drop state
+const draggingId = ref(null)
+const dragStartIndex = ref(null)
+
+// Drag and drop handlers
+const startDrag = (event, entry, index) => {
+  draggingId.value = entry.id
+  dragStartIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+const endDrag = () => {
+  draggingId.value = null
+  dragStartIndex.value = null
+}
+
+const onDrop = (event, dropIndex) => {
+  event.preventDefault()
+  if (dragStartIndex.value !== null && dropIndex !== dragStartIndex.value) {
+    reorderEntries(dragStartIndex.value, dropIndex)
+  }
+  endDrag()
+}
 
 // Component state
 const showAddModal = ref(false)
@@ -448,7 +482,7 @@ const closeModal = () => {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 1rem 1rem;
   color: var(--text-secondary);
 }
 
@@ -574,6 +608,41 @@ const closeModal = () => {
 .modal-enter-to .modal-content,
 .modal-leave-from .modal-content {
   transform: scale(1) translateY(0);
+}
+
+/* Priority Selector Styles */
+.priority-select {
+  padding: 0.25rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+.priority-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-color-transparent);
+}
+
+/* Drag and Drop Styles */
+.date-entry {
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.date-entry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.date-entry.is-dragging {
+  cursor: grabbing;
+  opacity: 0.7;
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile Styles */
