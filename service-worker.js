@@ -129,3 +129,35 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// Handle messages from main app (for missed notifications)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_MISSED_NOTIFICATION') {
+    const notif = event.data.notification;
+    self.registration.showNotification(notif.title, {
+      icon: notif.icon,
+      badge: notif.badge,
+      body: notif.body,
+      tag: notif.tag,
+      requireInteraction: notif.requireInteraction,
+      data: notif.data
+    });
+  }
+});
+
+// Background sync event (when user comes online)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'notification-sync') {
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then((clientList) => {
+        // Send sync request to all clients
+        clientList.forEach((client) => {
+          client.postMessage({
+            type: 'BACKGROUND_SYNC',
+            tag: event.tag
+          });
+        });
+      })
+    );
+  }
+});
